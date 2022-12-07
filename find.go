@@ -56,10 +56,14 @@ func find(w io.Writer, u *url.URL, matchers []*regexp.Regexp) (next *url.URL,
 	// main div#content table.el-item.item. tbody tr td p.desc
 	// + span.mainlink a -> link
 
-	items := top.
+	items, ok := top.
 		Find(Element(atom.Main)).
 		Find(Element(atom.Div, ID("content"))).
-		FindAll(Element(atom.Table, Class("el-item")))
+		FindWithSiblings(Element(atom.Table, Class("item")))
+
+	if !ok {
+		log.Println("unknown format for items in the issue:", u)
+	}
 
 	for section := range items {
 

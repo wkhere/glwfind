@@ -1,5 +1,5 @@
-github.com/wkhere/htmlx v0.9.0 h1:iPUrp9bdzPPGQ36C+WK5vJiqEzmG0iQOG9cPSmBGMxQ=
-github.com/wkhere/htmlx v0.9.0/go.mod h1:9xLBP1LE659u6aUAP4TwR3Vxgc9ePt5CLdgdz7+17Uk=
+github.com/wkhere/htmlx v0.10.0 h1:ccvEKiEhRVPeO4MG/dWUHqTGaMa3r8ZpxgbidscUN0k=
+github.com/wkhere/htmlx v0.10.0/go.mod h1:9xLBP1LE659u6aUAP4TwR3Vxgc9ePt5CLdgdz7+17Uk=
 golang.org/x/net v0.0.0-20210520170846-37e1c6afe023 h1:ADo5wSpq2gqaCGQWzk7S5vd//0iyyLeAratkEoG5dLE=
 golang.org/x/net v0.0.0-20210520170846-37e1c6afe023/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
