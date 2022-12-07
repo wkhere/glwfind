@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -95,8 +96,10 @@ func find(w io.Writer, u *url.URL, matchers []*regexp.Regexp) (next *url.URL,
 
 	prev := findPrev(top)
 	if prev.IsEmpty() {
+		log.Println("last issue processed:", u)
 		return nil, nil
 	}
+
 	link, ok := prev.Attr().Val("href")
 	if !ok || link == "" {
 		return nil, fmt.Errorf("invalid prev link: %v", prev)
