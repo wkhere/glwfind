@@ -65,9 +65,9 @@ func find(w io.Writer, u *url.URL, matchers []*regexp.Regexp) (next *url.URL,
 		log.Println("unknown format for items in the issue:", u)
 	}
 
-	for section := range items {
+	for ref := range items {
 
-		p := section.
+		p := ref.
 			Find(Element(atom.Td)).
 			Find(Element(atom.P, Class("desc")))
 
