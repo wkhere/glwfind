@@ -53,8 +53,16 @@ func find(w io.Writer, u *url.URL, matchers []*regexp.Regexp) (next *url.URL,
 		return nil, fmt.Errorf("parse error: %w", err)
 	}
 
-	// main div#content table.el-item.item. tbody tr td p.desc
-	// + span.mainlink a -> link
+	// items: body/main div#content table.item
+	// item:
+	//   text content: all text children of: tbody/tr/td/p.desc
+	//   link from p: span.mainlink/a
+	//
+	// older glw issues, 204 and below:
+	// issues: body/main table.container table.item
+	// item:
+	//   text content: all text children of: tbody/tr[0],tr[1]
+	//   link from item: tbody/tr/td.link a.main
 
 	items, ok := top.
 		Find(Element(atom.Main)).
