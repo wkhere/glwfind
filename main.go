@@ -27,7 +27,7 @@ func main() {
 		die(2, err)
 	}
 
-	err = findInAll(os.Stdout, &c)
+	err = driver(os.Stdout, &c)
 	if err != nil {
 		die(1, err)
 	}

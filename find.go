@@ -14,28 +14,6 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-func findInAll(w io.Writer, conf *config) (err error) {
-	u, err := url.Parse(conf.startURL)
-	if err != nil {
-		return err
-	}
-
-	matchers := make([]*regexp.Regexp, len(conf.terms))
-	for i, t := range conf.terms {
-		matchers[i] = regexp.MustCompile("(?i)" + t)
-	}
-
-	for u != nil {
-		var next *url.URL
-		next, err = find(w, u, matchers)
-		if err != nil {
-			return fmt.Errorf("%s: %v", u, err)
-		}
-		u = next
-	}
-	return nil
-}
-
 func find(w io.Writer, u *url.URL, matchers []*regexp.Regexp) (next *url.URL,
 	_ error) {
 	req := &http.Request{Method: "GET", URL: u}
@@ -88,6 +66,7 @@ func find(w io.Writer, u *url.URL, matchers []*regexp.Regexp) (next *url.URL,
 			continue
 		}
 
+		debugln()
 		fmt.Fprintf(w, "** match in %s\n", u)
 
 		link, ok := p.
