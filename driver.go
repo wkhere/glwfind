@@ -15,7 +15,10 @@ func driver(w io.Writer, conf *config) (err error) {
 
 	matchers := make([]*regexp.Regexp, len(conf.terms))
 	for i, t := range conf.terms {
-		matchers[i] = regexp.MustCompile("(?i)" + t)
+		matchers[i], err = regexp.Compile("(?i)" + t)
+		if err != nil {
+			return err
+		}
 	}
 
 	for u != nil {
