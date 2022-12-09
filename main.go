@@ -1,24 +1,37 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
 
 type config struct {
-	startURL string
-	terms    []string
-}
-
-func defaultConfig() config {
-	return config{
-		startURL: "https://golangweekly.com/issues/latest",
-	}
+	terms []string
 }
 
 func init() {
-	log.SetPrefix("glwfind: ")
 	log.SetFlags(0)
+}
+
+func run(c *config) (err error) {
+	db, err := setupDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	err = feedAll(db)
+	if err != nil {
+		return err
+	}
+
+	err = find(os.Stdout, db, c.terms)
+	if err != nil {
+		return fmt.Errorf("find: %w", err)
+	}
+
+	return nil
 }
 
 func main() {
@@ -27,7 +40,7 @@ func main() {
 		die(2, err)
 	}
 
-	err = driver(os.Stdout, &c)
+	err = run(&c)
 	if err != nil {
 		die(1, err)
 	}

@@ -5,7 +5,6 @@ import (
 )
 
 func parseArgs(args []string) (c config, _ error) {
-	c = defaultConfig()
 
 	// for a start, trivial setup: all args are search term
 	// todo: handle flags, at least -h, show usage only on -h,

@@ -1,124 +1,67 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"io"
-	"log"
-	"net/http"
-	"net/url"
-	"regexp"
 	"strings"
-
-	"github.com/wkhere/htmlx"
-	. "github.com/wkhere/htmlx/pred"
-	"golang.org/x/net/html/atom"
 )
 
-func find(w io.Writer, u *url.URL, matchers []*regexp.Regexp) (next *url.URL,
-	_ error) {
-	req := &http.Request{Method: "GET", URL: u}
-	resp, err := http.DefaultClient.Do(req)
+type result struct {
+	issueURL string
+	refURL   string
+	desc     string
+}
+
+const termsLimit = 20
+
+func find(w io.Writer, db *sql.DB, terms []string) (err error) {
+	if len(terms) < 1 {
+		return fmt.Errorf("need at least 1 term")
+	}
+	if len(terms) > termsLimit {
+		return fmt.Errorf("terms limit exceeded")
+	}
+
+	q := `
+		SELECT url, link, desc
+		FROM refs r JOIN issues i on (i.num=r.issuenum)
+		WHERE `
+	conds := make([]string, len(terms))
+	for i, _ := range terms {
+		conds[i] = `desc LIKE ?`
+	}
+	qtail := `
+		ORDER BY i.num DESC, r.refnum`
+
+	q = fmt.Sprint(q, strings.Join(conds, ` AND `), qtail)
+
+	values := make([]any, len(terms))
+	for i, term := range terms {
+		values[i] = `%` + term + `%`
+	}
+
+	rows, err := db.Query(q, values...)
 	if err != nil {
-		return nil, fmt.Errorf("get error: %w", err)
+		return err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("unexpected get status: %s", resp.Status)
-	}
+	defer rows.Close()
 
-	top, err := htmlx.FinderFromData(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("parse error: %w", err)
-	}
-
-	// items: body/main div#content table.item
-	// item:
-	//   text content: all text children of: tbody/tr/td/p.desc
-	//   link from p: span.mainlink/a
-	//
-	// older glw issues, 204 and below:
-	// issues: body/main table.container table.item
-	// item:
-	//   text content: all text children of: tbody/tr[0],tr[1]
-	//   link from item: tbody/tr/td.link a.main
-
-	items, ok := top.
-		Find(Element(atom.Main)).
-		Find(Element(atom.Div, ID("content"))).
-		FindWithSiblings(Element(atom.Table, Class("item")))
-
-	if !ok {
-		log.Println("unknown format for items in the issue:", u)
-	}
-
-	for ref := range items {
-
-		p := ref.
-			Find(Element(atom.Td)).
-			Find(Element(atom.P, Class("desc")))
-
-		s := dumpAllText(p)
-
-		match := all(matchers, func(rx *regexp.Regexp) bool {
-			return rx.MatchString(s)
-		})
-		if !match {
-			continue
+	for rows.Next() {
+		var r result
+		err = rows.Scan(&r.issueURL, &r.refURL, &r.desc)
+		if err != nil {
+			return err
 		}
-
-		debugln()
-		fmt.Fprintf(w, "** match in %s\n", u)
-
-		link, ok := p.
-			Find(Element(atom.Span, Class("mainlink"))).
-			Find(Element(atom.A)).
-			Attr().Val("href")
-
-		if !ok || link == "" {
-			fmt.Fprintln(w, "** link: not found")
-		} else {
-			fmt.Fprintln(w, "** link:", link)
-		}
-
-		fmt.Fprintln(w, "** text content:")
-		io.WriteString(w, s)
-		io.WriteString(w, "\n\n")
+		print(w, &r)
 	}
 
-	prev := findPrev(top)
-	if prev.IsEmpty() {
-		log.Println("last issue processed:", u)
-		return nil, nil
-	}
-
-	link, ok := prev.Attr().Val("href")
-	if !ok || link == "" {
-		return nil, fmt.Errorf("invalid prev link: %v", prev)
-	}
-	return u.ResolveReference(&url.URL{Path: link}), nil
+	return rows.Err()
 }
 
-func findPrev(f htmlx.Finder) htmlx.Finder {
-	return f.
-		Find(Element(atom.Main)).
-		Find(Element(atom.Div, Class("pager"))).
-		Find(Element(atom.Div, Class("prev"))).
-		Find(Element(atom.A))
-}
-
-func dumpAllText(f htmlx.Finder) string {
-	b := new(strings.Builder)
-	for x := range f.FindAll(AnyText()) {
-		b.WriteString(x.Data)
-	}
-	return b.String()
-}
-
-func all[T any](xx []T, f func(T) bool) bool {
-	for _, x := range xx {
-		if !f(x) {
-			return false
-		}
-	}
-	return true
+func print(w io.Writer, r *result) {
+	fmt.Fprintln(w, "* issue:", r.issueURL)
+	fmt.Fprintln(w, "* ref:  ", r.refURL)
+	fmt.Fprintln(w, "* desc: ", r.desc)
+	fmt.Fprintln(w)
 }
