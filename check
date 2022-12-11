@@ -1,6 +1,8 @@
 #!/bin/bash
 num=440
-db=glw.db
+db=$GLWDB
+[ -z "$db" ] && db=$HOME/.glw.db
+
 [ -n "$1" ] && num=$1
 [ -n "$2" ] && db=$2
 echo "select * from refs WHERE issuenum=$num order by refnum;" | sqlite3 $db

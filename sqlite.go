@@ -4,13 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"os/user"
+	"path/filepath"
 
 	_ "modernc.org/sqlite"
 )
-
-func dbfile() string {
-	return "glw.db"
-}
 
 func dsn() string {
 	return fmt.Sprintf("file:%s?mode=rw", dbfile())
@@ -98,4 +96,23 @@ func touch(file string) error {
 		return f.Close()
 	}
 	return nil
+}
+
+func dbfile() string {
+	if p := os.Getenv("GLWDB"); p != "" {
+		return p
+	}
+	return filepath.Join(home(), ".glw.db")
+}
+
+func home() string {
+	s := os.Getenv("HOME")
+	if s == "" {
+		u, err := user.Current()
+		if err != nil {
+			panic(err)
+		}
+		return u.HomeDir
+	}
+	return s
 }
