@@ -112,14 +112,17 @@ func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 				Find(Element(atom.Div, ID("content"))).
 				FindWithSiblings(Element(atom.Table, Class("item")))
 		}
-		selector.desc = func(item htmlx.Finder) htmlx.FinderStream {
+		p := func(item htmlx.Finder) htmlx.Finder {
 			return item.
 				Find(Element(atom.Td)).
-				Find(Element(atom.P, Class("desc"))).
-				StreamSelf()
+				Find(Element(atom.P, Class("desc")))
+		}
+		selector.desc = func(item htmlx.Finder) htmlx.FinderStream {
+			return p(item).
+				FindAll(AnyText())
 		}
 		selector.link = func(item htmlx.Finder) htmlx.Finder {
-			return selector.desc(item).First().
+			return p(item).
 				Find(Element(atom.Span)).
 				Find(Element(atom.A))
 		}
@@ -141,7 +144,8 @@ func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 				FindWithSiblings(Element(atom.Li))
 		}
 		selector.desc = func(item htmlx.Finder) htmlx.FinderStream {
-			return item.StreamSelf()
+			return item.
+				FindAll(AnyText())
 		}
 		selector.link = func(item htmlx.Finder) htmlx.Finder {
 			return item.
@@ -161,9 +165,12 @@ func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 				FindAll(Element(atom.Table, Class("item")))
 		}
 		selector.desc = func(item htmlx.Finder) htmlx.FinderStream {
-			ff := item.
-				FindWithSiblings(Element(atom.Tr))
-			return ff.TakeN(2)
+			return item.
+				FindWithSiblings(Element(atom.Tr)).
+				TakeN(2).
+				Join(func(f htmlx.Finder) htmlx.FinderStream {
+					return f.FindAll(AnyText())
+				})
 		}
 		selector.link = func(item htmlx.Finder) htmlx.Finder {
 			return item.
@@ -191,7 +198,7 @@ func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 			continue
 		}
 
-		s := dumpAllText(selector.desc(item).Collect())
+		s := dumpAll(selector.desc(item).Collect())
 
 		err = upsertRef(db, lid, inum, refnum, link, s)
 		if err != nil {
@@ -211,12 +218,10 @@ func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 	return !missing, nil
 }
 
-func dumpAllText(ff []htmlx.Finder) string {
+func dumpAll(ff []htmlx.Finder) string {
 	b := new(strings.Builder)
-	for _, f := range ff {
-		for x := range f.FindAll(AnyText()) {
-			b.WriteString(x.Data)
-		}
+	for _, x := range ff {
+		b.WriteString(x.Data)
 	}
 	return b.String()
 }
