@@ -8,6 +8,7 @@ import (
 
 	"github.com/wkhere/htmlx"
 	. "github.com/wkhere/htmlx/pred"
+	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
 
@@ -220,8 +221,11 @@ func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 
 func dumpAll(ff []htmlx.Finder) string {
 	b := new(strings.Builder)
-	for _, x := range ff {
-		b.WriteString(x.Data)
+	for _, f := range ff {
+		b.WriteString(f.Data)
+		if f.Type == html.TextNode && !tailWS.MatchString(f.Data) {
+			b.WriteString("  ")
+		}
 	}
 	return b.String()
 }
