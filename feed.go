@@ -54,7 +54,7 @@ func feedAll(db *sql.DB) (err error) {
 	}
 
 	consoleln()
-	return nil
+	return vacuum(db)
 }
 
 func feed1(db *sql.DB, inum int, url string) (all bool, _ error) {

@@ -87,6 +87,11 @@ func upsertRef(db *sql.DB, lid, inum, refnum int, link, desc string) (
 	return err
 }
 
+func vacuum(db *sql.DB) (err error) {
+	_, err = db.Exec(`VACUUM`)
+	return err
+}
+
 func touch(file string) error {
 	if _, err := os.Stat(dbfile()); os.IsNotExist(err) {
 		f, err := os.Create(dbfile())
