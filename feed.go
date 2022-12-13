@@ -157,7 +157,8 @@ func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 		// older issues:
 		// items: body/main table.container table.item(findall)
 		// item:
-		//   desc: all non-ws text children of: tbody/tr[0],tr[1]
+		//   desc: all non-ws text children of: tbody/tr[0..n-1] (*)
+		//   (*) applies to len(tr)>1, if =1 then that tr is descended
 		//   link from item: tbody/tr/td.link a
 		selector.items = func() htmlx.FinderStream {
 			return top.
@@ -166,10 +167,20 @@ func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 				FindAll(Element(atom.Table, Class("item")))
 		}
 		selector.desc = func(item htmlx.Finder) htmlx.FinderStream {
-			return item.
+			trs := item.
 				FindWithSiblings(Element(atom.Tr)).
-				TakeN(2).
-				Join(htmlx.AllText)
+				Collect()
+			switch len(trs) {
+			case 0:
+				return htmlx.Inject(nil)
+			case 1:
+				return htmlx.AllText(trs[0])
+			default:
+				// btw, the last tr is author/source
+				return htmlx.
+					Inject(trs[:len(trs)-1]).
+					Join(htmlx.AllText)
+			}
 		}
 		selector.link = func(item htmlx.Finder) htmlx.Finder {
 			return item.
