@@ -1,7 +1,18 @@
 package main
 
-import "regexp"
+import (
+	"unicode"
+	"unicode/utf8"
+)
 
-var rxTailWS = regexp.MustCompile(`(\s)+$`)
-
-var tailWS func(string) bool = rxTailWS.MatchString
+func tailWS(s string) bool {
+	r, _ := utf8.DecodeLastRuneInString(s)
+	switch r {
+	case '\u00A0':
+		// used in glw around a special section marker;
+		// when dumping, we want extra space after it
+		return false
+	default:
+		return unicode.IsSpace(r)
+	}
+}
