@@ -2,4 +2,6 @@ package main
 
 import "regexp"
 
-var tailWS = regexp.MustCompile(`(\s)+$`)
+var rxTailWS = regexp.MustCompile(`(\s)+$`)
+
+var tailWS func(string) bool = rxTailWS.MatchString

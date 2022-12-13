@@ -232,7 +232,7 @@ func dumpAll(ff []htmlx.Finder) string {
 	b := new(strings.Builder)
 	for _, f := range ff {
 		b.WriteString(f.Data)
-		if f.Type == html.TextNode && !tailWS.MatchString(f.Data) {
+		if f.Type == html.TextNode && !tailWS(f.Data) {
 			b.WriteString("  ")
 		}
 	}
