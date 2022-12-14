@@ -2,31 +2,79 @@ package main
 
 import (
 	"fmt"
-	"regexp"
+	"path"
 	"strconv"
 )
 
-var (
-	rxIssue   = regexp.MustCompile(`/issues/(\d+)$`)
-	rxReflink = regexp.MustCompile(`/link/(\d+)/web$`)
-)
+// Note that the current imprelentation
+// (as well as the previous one, using regexps)
+// doesn't check against the full path.
+// So, both forms are allowed:
+//   proto://host/issues/:num
+//   proto://host/foo/issues/:num
+// Actually, the fact that second one is invalid doesn't matter much,
+// as we want to simply parse urls coming from glw to get the revelant data.
 
 func parseIssueNum(url string) (int, error) {
-	return parsePathInt(url, rxIssue)
+	// match /issues/:num
+
+	if hasLastSlash(url) {
+		return 0, errNoMatch(url)
+	}
+
+	d, s := path.Split(url)
+	h, d := path.Split(cutLastSlash(d))
+
+	if d != "issues" || !hasLastSlash(h) {
+		return 0, errNoMatch(url)
+	}
+
+	return nonNegativeNum(s)
 }
 
 func parseReflinkID(url string) (int, error) {
-	return parsePathInt(url, rxReflink)
+	// match /link/:id/web
+
+	if hasLastSlash(url) {
+		return 0, errNoMatch(url)
+	}
+
+	d, s := path.Split(url)
+	if s != "web" {
+		return 0, errNoMatch(url)
+	}
+
+	d, s = path.Split(cutLastSlash(d))
+	h, d := path.Split(cutLastSlash(d))
+
+	if d != "link" || !hasLastSlash(h) {
+		return 0, errNoMatch(url)
+	}
+
+	return nonNegativeNum(s)
 }
 
-func parsePathInt(url string, rx *regexp.Regexp) (int, error) {
-	m := rx.FindStringSubmatch(url)
-	if m == nil {
-		return 0, fmt.Errorf("no match: %q", url)
+func nonNegativeNum(s string) (int, error) {
+	if len(s) > 0 && s[0] == '-' {
+		return 0, errNoMatch(s)
 	}
-	x, err := strconv.Atoi(m[1])
+	x, err := strconv.Atoi(s)
 	if err != nil {
-		panic("should never happen")
+		return 0, errNoMatch(s)
 	}
-	return x, nil
+	return x, err
+}
+
+func hasLastSlash(s string) bool {
+	return len(s) > 0 && s[len(s)-1] == '/'
+}
+func cutLastSlash(s string) string {
+	if hasLastSlash(s) {
+		return s[:len(s)-1]
+	}
+	return s
+}
+
+func errNoMatch(s string) error {
+	return fmt.Errorf("no match: %q", s)
 }
