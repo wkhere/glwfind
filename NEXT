@@ -1,7 +1,7 @@
 + vacuum after feed
 - options for rescanning some pages
 - options for narrowing the find
-- trim some newlines/whitespaces in the old pages
++ trim some newlines/whitespaces in the old pages
 - add author
 - add section type (featured, jobs, ...)
 - htmlx: use direct children
