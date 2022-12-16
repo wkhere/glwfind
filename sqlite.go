@@ -67,7 +67,6 @@ func upsertIssue(db *sql.DB, inum int, url string) (done bool, err error) {
 }
 
 func finishIssue(db *sql.DB, inum int) (err error) {
-	//.. UPDATE issues SET done=true where num=?
 	_, err = db.Exec(
 		`UPDATE issues SET done=true WHERE num=?`, inum,
 	)
