@@ -5,3 +5,4 @@
 - add author
 - add section type (featured, jobs, ...)
 - htmlx: use direct children
+- include "In brief": #content .el-md
