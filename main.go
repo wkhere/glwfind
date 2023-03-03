@@ -22,7 +22,7 @@ func run(c *config) (err error) {
 	defer db.Close()
 
 	err = feedAll(db)
-	if err != nil {
+	if err != nil && !isNetError(err) {
 		return err
 	}
 
