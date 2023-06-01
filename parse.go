@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// Note that the current imprelentation
+// Note that the current implementation
 // (as well as the previous one, using regexps)
 // doesn't check against the full path.
 // So, both forms are allowed:
