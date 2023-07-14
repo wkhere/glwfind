@@ -89,9 +89,13 @@ func feed1(db *sql.DB, inum int, url string) (all bool, _ error) {
 
 func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 
-	logf := func(format string, a ...any) {
-		consolef(format, a...)
-		console("  ")
+	var log1st = true
+	var logf = func(format string, a ...any) {
+		if log1st {
+			log1st = false
+			consoleln()
+		}
+		consolef("\t"+format+"\n", a...)
 	}
 
 	var selector = struct {
