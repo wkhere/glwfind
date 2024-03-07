@@ -92,8 +92,8 @@ func vacuum(db *sql.DB) (err error) {
 }
 
 func touch(file string) error {
-	if _, err := os.Stat(dbfile()); os.IsNotExist(err) {
-		f, err := os.Create(dbfile())
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		f, err := os.Create(file)
 		if err != nil {
 			return err
 		}
