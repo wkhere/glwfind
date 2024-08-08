@@ -9,6 +9,14 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+func dbfile() (string, error) {
+	p := os.Getenv("GLWDB")
+	if p == "" {
+		p = "~/.glw.db"
+	}
+	return tilde.Expand(p)
+}
+
 func dsn(path string) string {
 	return fmt.Sprintf("file:%s?mode=rw", path)
 }
@@ -103,12 +111,4 @@ func touch(file string) error {
 		return f.Close()
 	}
 	return nil
-}
-
-func dbfile() (string, error) {
-	p := os.Getenv("GLWDB")
-	if p == "" {
-		p = "~/.glw.db"
-	}
-	return tilde.Expand(p)
 }
