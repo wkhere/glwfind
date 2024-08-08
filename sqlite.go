@@ -105,7 +105,7 @@ func touch(file string) error {
 	return nil
 }
 
-func dbfile() (_ string, err error) {
+func dbfile() (string, error) {
 	p := os.Getenv("GLWDB")
 	if p == "" {
 		p = "~/.glw.db"
