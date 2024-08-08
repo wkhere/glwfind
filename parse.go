@@ -62,7 +62,7 @@ func nonNegativeNum(s string) (int, error) {
 	if err != nil {
 		return 0, errNoMatch(s)
 	}
-	return x, err
+	return x, nil
 }
 
 func hasLastSlash(s string) bool {
