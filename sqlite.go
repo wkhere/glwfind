@@ -4,22 +4,25 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"os/user"
-	"path/filepath"
 
+	"github.com/wkhere/tilde"
 	_ "modernc.org/sqlite"
 )
 
-func dsn() string {
-	return fmt.Sprintf("file:%s?mode=rw", dbfile())
+func dsn(path string) string {
+	return fmt.Sprintf("file:%s?mode=rw", path)
 }
 
 func setupDB() (*sql.DB, error) {
-	err := touch(dbfile())
+	p, err := dbfile()
 	if err != nil {
 		return nil, err
 	}
-	db, err := sql.Open("sqlite", dsn())
+	err = touch(p)
+	if err != nil {
+		return nil, err
+	}
+	db, err := sql.Open("sqlite", dsn(p))
 	if err != nil {
 		return nil, err
 	}
@@ -102,21 +105,10 @@ func touch(file string) error {
 	return nil
 }
 
-func dbfile() string {
-	if p := os.Getenv("GLWDB"); p != "" {
-		return p
+func dbfile() (_ string, err error) {
+	p := os.Getenv("GLWDB")
+	if p == "" {
+		p = "~/.glw.db"
 	}
-	return filepath.Join(home(), ".glw.db")
-}
-
-func home() string {
-	s := os.Getenv("HOME")
-	if s == "" {
-		u, err := user.Current()
-		if err != nil {
-			panic(err)
-		}
-		return u.HomeDir
-	}
-	return s
+	return tilde.Expand(p)
 }

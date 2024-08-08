@@ -6,6 +6,7 @@ require (
 	github.com/wkhere/htmlx v0.15.4
 	golang.org/x/net v0.13.0
 	modernc.org/sqlite v1.20.0
+	github.com/wkhere/tilde v0.3.0
 )
 
 require (
