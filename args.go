@@ -1,21 +1,36 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 )
 
 func parseArgs(args []string) (c config, _ error) {
 
-	// for a start, trivial setup: all args are search term
-	// todo: handle flags, at least -h, show usage only on -h,
-	//		 show error on empty args.
+	const usage = `usage: glwfind [-x|--offline] term1 [termN...]`
 
-	if len(args) == 0 {
-		return c, errors.New(usage)
+	for len(args) > 0 {
+		switch arg := args[0]; {
+
+		case arg == "-x" || arg == "--offline":
+			c.offline = true
+			args = args[1:]
+
+		case arg == "-h" || arg == "--help":
+			c.help = func() { fmt.Println(usage) }
+			return c, nil
+
+		case len(arg) > 1 && arg[0] == '-':
+			return c, fmt.Errorf("unknown flag %s", arg)
+
+		default:
+			c.terms = append(c.terms, arg)
+			args = args[1:]
+		}
 	}
 
-	c.terms = args
+	if len(c.terms) == 0 {
+		return c, fmt.Errorf("missing terms")
+	}
+
 	return c, nil
 }
-
-const usage = `usage: glwfind term1 [termN...]`

@@ -7,7 +7,10 @@ import (
 )
 
 type config struct {
-	terms []string
+	offline bool
+	terms   []string
+
+	help func()
 }
 
 func init() {
@@ -21,9 +24,11 @@ func run(c *config) (err error) {
 	}
 	defer db.Close()
 
-	err = feedAll(db)
-	if err != nil && !isNetError(err) {
-		return err
+	if !c.offline {
+		err = feedAll(db)
+		if err != nil && !isNetError(err) {
+			return err
+		}
 	}
 
 	err = find(os.Stdout, db, c.terms)
@@ -38,6 +43,10 @@ func main() {
 	c, err := parseArgs(os.Args[1:])
 	if err != nil {
 		die(2, err)
+	}
+	if c.help != nil {
+		c.help()
+		os.Exit(0)
 	}
 
 	err = run(&c)

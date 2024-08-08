@@ -8,6 +8,8 @@
 - include "In brief": #content .el-md
 + offline mode
 
+- flag to force offline mode
+
 - links seem to be changed after several issues, so, if there are too many
   errors like "no link id", stop going through pages or at least stop
   reporting these errors
