@@ -31,6 +31,9 @@ func feedAll(db *sql.DB) (err error) {
 		if inum == 187 {
 			continue // the one missing
 		}
+		if inum >= 451 && inum <= 514 {
+			continue // the ones with broken article links
+		}
 
 		url := fmt.Sprintf("https://golangweekly.com/issues/%d", inum)
 
