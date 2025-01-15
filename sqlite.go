@@ -50,13 +50,13 @@ func createMissingSchema(db *sql.DB) (err error) {
 			PRIMARY KEY (num)
 		);
 		CREATE TABLE IF NOT EXISTS refs (
-			linkid   INTEGER NOT NULL,
+			refid    TEXT NOT NULL,
 			issuenum INTEGER NOT NULL,
 			refnum	 INTEGER NOT NULL,
 			link     TEXT NOT NULL,
 			desc     TEXT NOT NULL,
 			FOREIGN KEY (issuenum) REFERENCES issues(num),
-			PRIMARY KEY (linkid)
+			PRIMARY KEY (refid)
 		);
 	`)
 	return err
@@ -84,14 +84,17 @@ func finishIssue(db *sql.DB, inum int) (err error) {
 	return err
 }
 
-func upsertRef(db *sql.DB, lid, inum, refnum int, link, desc string) (
+// upsertRef does what the name says; here is a bit about refid semantics:
+// "l:<linkid>" means linkid was found;
+// "g:<issue>:<linkhash>" means refid was generated.
+func upsertRef(db *sql.DB, refid string, inum, refnum int, link, desc string) (
 	err error) {
 	_, err = db.Exec(`
-		INSERT INTO refs (linkid, issuenum, refnum, link, desc)
+		INSERT INTO refs (refid, issuenum, refnum, link, desc)
 		VALUES (?, ?, ?, ?, ?)
-		ON CONFLICT (linkid) DO UPDATE SET refnum=?, link=?, desc=?
+		ON CONFLICT (refid) DO UPDATE SET refnum=?, link=?, desc=?
 		`,
-		lid, inum, refnum, link, desc,
+		refid, inum, refnum, link, desc,
 		refnum, link, desc,
 	)
 	return err

@@ -10,6 +10,5 @@
 
 + flag to force offline mode
 
-~ links seem to be changed after several issues, so, if there are too many
-  errors like "no link id", stop going through pages or at least stop
-  reporting these errors -> skipping issues 451-514 having that
++ links seem to be changed to originals after several issues and linkid is lost;
+  in such case generate refid from issuenum and link hash

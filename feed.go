@@ -31,9 +31,6 @@ func feedAll(db *sql.DB) (err error) {
 		if inum == 187 {
 			continue // the one missing
 		}
-		if inum >= 451 && inum <= 514 {
-			continue // the ones with broken article links
-		}
 
 		url := fmt.Sprintf("https://golangweekly.com/issues/%d", inum)
 
@@ -208,22 +205,23 @@ func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
 			missing = true
 			continue
 		}
-		lid, err := parseReflinkID(link)
-		if err != nil {
-			logf("ref#%d: no link id: %v", refnum, err)
-			missing = true
-			continue
+		var rid string
+		{
+			lid, err := parseReflinkID(link)
+			if err == nil {
+				rid = fmt.Sprintf("l:%d", lid)
+			} else {
+				rid = fmt.Sprintf("g:%d:%s", inum, minihash(link))
+			}
 		}
 
 		s := dumpAll(selector.desc(item).Collect())
 
-		err = upsertRef(db, lid, inum, refnum, link, s)
+		err := upsertRef(db, rid, inum, refnum, link, s)
 		if err != nil {
-			// as opposed to errors above, return here to not stack db errors
-			// - if db goes funky it probably will also for the next web page
-			return false, fmt.Errorf(
-				"ref#%d link#%d upsert: %w", refnum, lid, err,
-			)
+			// upsert errors terminate refs loop
+			// - if db goes funky it probably will also for the next ref
+			return false, fmt.Errorf("refid#%s ref#%d upsert: %w", rid, refnum, err)
 		}
 	}
 
