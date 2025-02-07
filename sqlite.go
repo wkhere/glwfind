@@ -106,12 +106,12 @@ func vacuum(db *sql.DB) (err error) {
 }
 
 func touch(file string) error {
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		f, err := os.Create(file)
-		if err != nil {
-			return err
-		}
-		return f.Close()
+	f, err := os.OpenFile(file, os.O_CREATE|os.O_EXCL, 0644)
+	if os.IsExist(err) {
+		return nil
 	}
-	return nil
+	if err != nil {
+		return err
+	}
+	return f.Close()
 }
