@@ -1,6 +1,4 @@
 + vacuum after feed
-- options for rescanning some pages
-- options for narrowing the find
 + trim some newlines/whitespaces in the old pages
 - add author
 - add section type (featured, jobs, ...)
@@ -12,3 +10,7 @@
 
 + links seem to be changed to originals after several issues and linkid is lost;
   in such case generate refid from issuenum and link hash
+
+- flags for rescanning some pages
+- flags for narrowing the find, or at least: narrowing the number of results
+  (recent first and oldest first)
