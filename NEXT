@@ -7,6 +7,7 @@
 + offline mode
 
 + flag to force offline mode
+- in offline mode, warn when the database is empty or missing
 
 + links seem to be changed to originals after several issues and linkid is lost;
   in such case generate refid from issuenum and link hash
