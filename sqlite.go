@@ -22,11 +22,19 @@ func dsn(path string) string {
 	return fmt.Sprintf("file:%s?mode=rw", path)
 }
 
-func setupDB() (*sql.DB, error) {
+func setupDB(needPopulatedDB bool) (*sql.DB, error) {
 	p, err := dbfile()
 	if err != nil {
 		return nil, err
 	}
+	if needPopulatedDB {
+		db, err := sql.Open("sqlite", dsn(p))
+		if err != nil {
+			return nil, err
+		}
+		return db, gotData(db)
+	}
+
 	err = touch(p)
 	if err != nil {
 		return nil, err
@@ -61,6 +69,25 @@ func createMissingSchema(db *sql.DB) (err error) {
 		);
 	`)
 	return err
+}
+
+func gotData(db *sql.DB) error {
+	var n int
+	r := db.QueryRow("select count(*) from issues")
+	if err := r.Scan(&n); err != nil {
+		return err
+	}
+	if n == 0 {
+		return fmt.Errorf("empty table 'issues'")
+	}
+	r = db.QueryRow("select count(*) from refs")
+	if err := r.Scan(&n); err != nil {
+		return err
+	}
+	if n == 0 {
+		return fmt.Errorf("empty table 'refs'")
+	}
+	return nil
 }
 
 func upsertIssue(db *sql.DB, inum int, url string) (done bool, err error) {

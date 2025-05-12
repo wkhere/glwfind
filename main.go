@@ -18,7 +18,7 @@ func init() {
 }
 
 func run(c *config) (err error) {
-	db, err := setupDB()
+	db, err := setupDB(c.offline)
 	if err != nil {
 		return err
 	}
