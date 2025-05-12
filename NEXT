@@ -8,6 +8,7 @@
 
 + flag to force offline mode
 + in offline mode, error when the database is empty or missing
+- warn when db is missing the earliest glw issue, meaning wasn't fully populated
 
 + links seem to be changed to originals after several issues and linkid is lost;
   in such case generate refid from issuenum and link hash
