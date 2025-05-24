@@ -42,7 +42,7 @@ func feedAll(db *sql.DB) (err error) {
 			continue
 		}
 
-		consolef("\rprocessing issue#%d\t", inum)
+		consolef("\rprocessing issue#%-4d  ", inum)
 
 		all, err := feed1(db, inum, url)
 		if err != nil || !all {
