@@ -9,6 +9,8 @@
 + flag to force offline mode
 + in offline mode, error when the database is empty or missing
 - warn when db is missing the earliest glw issue, meaning wasn't fully populated
+  (requires adding issues.date column and populating it with the title date,
+   then comparing with the current date at start)
 
 + links seem to be changed to originals after several issues and linkid is lost;
   in such case generate refid from issuenum and link hash
