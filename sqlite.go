@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/wkhere/tilde"
 
@@ -56,6 +57,7 @@ func createMissingSchema(db *sql.DB) (err error) {
 			num INTEGER NOT NULL,
 			url  TEXT NOT NULL,
 			done BOOLEAN NOT NULL,
+			date TEXT,
 			PRIMARY KEY (num)
 		);
 		CREATE TABLE IF NOT EXISTS refs (
@@ -90,6 +92,20 @@ func gotData(db *sql.DB) error {
 	return nil
 }
 
+func lastIssueDate(db *sql.DB) (_ sql.NullTime, err error) {
+	var s sql.NullString
+	row := db.QueryRow(`SELECT date FROM issues ORDER BY num DESC LIMIT 1`)
+	err = row.Scan(&s)
+	if err != nil {
+		return sql.NullTime{}, err
+	}
+	if !s.Valid {
+		return sql.NullTime{}, nil
+	}
+	t, err := time.Parse(dateFormat, s.String)
+	return sql.NullTime{t, true}, err
+}
+
 func upsertIssue(db *sql.DB, inum int, url string) (done bool, err error) {
 	_, err = db.Exec(
 		`INSERT OR IGNORE INTO issues (num, url, done) VALUES (?, ?, false)`,
@@ -103,6 +119,13 @@ func upsertIssue(db *sql.DB, inum int, url string) (done bool, err error) {
 	)
 	err = row.Scan(&done)
 	return done, err
+}
+
+func setIssueDate(db *sql.DB, inum int, t time.Time) (err error) {
+	_, err = db.Exec(
+		`UPDATE issues SET date=? WHERE num=?`, t.Format(dateFormat), inum,
+	)
+	return err
 }
 
 func finishIssue(db *sql.DB, inum int) (err error) {
@@ -143,3 +166,5 @@ func touch(file string) error {
 	}
 	return f.Close()
 }
+
+const dateFormat = "2006-01-02"

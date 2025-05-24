@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 type config struct {
@@ -27,7 +28,16 @@ func run(c *config) (err error) {
 	if !c.offline {
 		err = feedAll(db)
 		if err != nil && !isNetError(err) {
+			// todo: warn when it's a network error
 			return err
+		}
+	} else {
+		last, err := lastIssueDate(db)
+		if err != nil {
+			return err
+		}
+		if last.Valid && time.Since(last.Time) > 14*24*time.Hour {
+			log.Println("WARN database is probably stale")
 		}
 	}
 

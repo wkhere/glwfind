@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/wkhere/htmlx"
 	. "github.com/wkhere/htmlx/pred"
@@ -73,6 +74,12 @@ func feed1(db *sql.DB, inum int, url string) (all bool, _ error) {
 		return false, fmt.Errorf("html parse error: %w", err)
 	}
 
+	err = feedDate(db, inum, top)
+	if err != nil {
+		consolef("WARN date feed error: %s\n", err)
+		// not a deadly error, continue
+	}
+
 	all, err = feedRefs(db, inum, top)
 	if err != nil {
 		return all, fmt.Errorf("refs feed error: %w", err)
@@ -85,6 +92,24 @@ func feed1(db *sql.DB, inum int, url string) (all bool, _ error) {
 	}
 
 	return all, nil
+}
+
+func feedDate(db *sql.DB, inum int, top htmlx.Finder) error {
+	title := top.
+		Find(Element(atom.Head)).
+		Find(Element(atom.Title)).
+		InnerText()
+
+	_, s, ok := strings.Cut(title, ":")
+	if !ok {
+		return fmt.Errorf("date part not found in title %q", title)
+	}
+	s = strings.TrimSpace(s)
+	t, err := time.Parse("January 2, 2006", s)
+	if err != nil {
+		return err
+	}
+	return setIssueDate(db, inum, t)
 }
 
 func feedRefs(db *sql.DB, inum int, top htmlx.Finder) (all bool, _ error) {
