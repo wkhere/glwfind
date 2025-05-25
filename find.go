@@ -24,12 +24,12 @@ func find(w io.Writer, db *sql.DB, terms []string) (err error) {
 	}
 
 	q := `
-		SELECT url, link, desc
+		SELECT i.url, r.link, r.desc
 		FROM refs r JOIN issues i on (i.num=r.issuenum)
 		WHERE `
 	conds := make([]string, len(terms))
 	for i, _ := range terms {
-		conds[i] = `desc LIKE ?`
+		conds[i] = `r.desc LIKE ?`
 	}
 	qtail := `
 		ORDER BY i.num DESC, r.refnum`
