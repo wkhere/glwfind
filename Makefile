@@ -3,7 +3,7 @@ go:
 	go test .
 
 install: go	
-	go install
+	go install -ldflags=-s
 
 vet:
 	go vet
